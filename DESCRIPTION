@@ -1,0 +1,22 @@
+Package: PostHocGroups
+Type: Package
+Title: Approximation of paired post-hoc results as mutualy exclusive sets
+Version: 0.1.0
+Author: Adam Ryczkowski
+Maintainer: <adam@statystyka.net>
+Description: Takes function fn(item1, item2, ...) -> {0, 1} (different, not-
+    different) that returns whether specific items are statistically different (or
+    just the simmilarity matrix) and returns approximate view of the matrix as a set
+    of mutually exclusive subsets, each statistically different from the other.
+License: LGPL-3
+LazyData: TRUE
+Imports:
+    plyr,
+    bigmemory,
+    hash,
+    stats
+Suggests:
+    testthat
+Depends:
+    data.table
+RoxygenNote: 5.0.1
