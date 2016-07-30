@@ -1,0 +1,37 @@
+\documentclass[letterpaper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\usepackage[latin1]{inputenc} % @SET ENCODING@
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `PostHocGroups'}}
+\par\bigskip{\large \today}
+\end{center}
+\begin{description}
+\raggedright{}
+\item[Type]\AsIs{Package}
+\item[Title]\AsIs{Approximation of paired post-hoc results as mutualy exclusive sets}
+\item[Version]\AsIs{0.1.0}
+\item[Author]\AsIs{Adam Ryczkowski}
+\item[Maintainer]\AsIs{}\email{adam@statystyka.net}\AsIs{}
+\item[Description]\AsIs{Takes function fn(item1, item2, ...) -> \{0, 1\} (different, not-
+different) that returns whether specific items are statistically different (or
+just the simmilarity matrix) and returns approximate view of the matrix as a set
+of mutually exclusive subsets, each statistically different from the other.}
+\item[License]\AsIs{LGPL-3}
+\item[LazyData]\AsIs{TRUE}
+\item[Imports]\AsIs{
+plyr,
+bigmemory,
+hash,
+stats}
+\item[Suggests]\AsIs{
+testthat}
+\item[Depends]\AsIs{
+data.table}
+\item[RoxygenNote]\AsIs{5.0.1}
+\end{description}
+\Rdcontents{\R{} topics documented:}

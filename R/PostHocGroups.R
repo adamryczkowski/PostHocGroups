@@ -2,8 +2,6 @@
 #' binary relation matrix which tells whether one item is different from another or more general
 #' dissimilarity matrix, which also tells how significantly one item is different from another.
 #'
-#' Algorithm tries to find groups of items where all items belonging in one group are not significantly
-#'
 #'
 #' One usefull application is to present results of pairwise post-hoc tests of many groups in a
 #' easy to understand manner.
@@ -19,7 +17,7 @@
 #' even for relatively small number of post-hoc groups it would be computationaly not feasible to calculate.
 #' It rather uses hierarchical clustering to do the heavy lifting. Details in the \strong{algorithm} section.
 #'
-#' @section Features
+#' @section Features:
 #'
 #'\itemize{
 #'
@@ -39,12 +37,12 @@
 #'
 #'
 #'
-#' @section The algorithm
+#' @section The algorithm:
 #'
 #' Basically the algorithm tries to get as many as possible meaningful partitionings of the items and
 #' chooses the one which maximises the utility.
 #'
-#' \strong{Utility of the partitioning}
+#' \subsection{Utility of the partitioning}{
 #'
 #' The partition to evalute is converted into the Result Dissimilarity Matrix (RDM), where situation where two items
 #' belong to the same partition is marked as "0" and if the two items belong to different partitions - by "1".
@@ -58,9 +56,9 @@
 #' I will also asume, that the items are sorted according to the same measure that user used to calculate
 #' the dissimilarity matrix (usually it is group mean in case of PostHoc tests).
 #'
+#'}
 #'
-#'
-#' \strong{The algorithm step-by-step}
+#' \subsection{The algorithm step-by-step}{
 #'
 #' The algorithm tries very hard not to test all \eqn{2^n} possible partitionings.
 #'
@@ -89,9 +87,9 @@
 #' [This is optional step. It is performed only on top recursion level, and only if user ask for it]
 #' To offset the "U" shape of the "smile vector", algorithm can fits second level multiplicative
 #' "penalty" polynomial in the form
-#' \deqn{p(x) = A \left( \frac{2 x^2}{(n-1)^2}-\frac{2 x}{n-1}+1 \right)}.
+#' \deqn{p(x) = A ( \frac{2 x^2}{(n-1)^2}-\frac{2 x}{n-1}+1 )}.
 #' The polynomial is choosen the way, that its second derivative is always positive, and \eqn{p(0)=A},
-#' \eqn{p(n-1)=A} and \eqn{p(frac{n-1}{2})=\frac{A}{2}}. In other words, the penalty makes sure, that significant
+#' \eqn{p(n-1)=A} and \eqn{p(\frac{n-1}{2})=\frac{A}{2}}. In other words, the penalty makes sure, that significant
 #' differences between items that are on the far ends of the item list are twice less pronounced than differences
 #' in the middle of the set.
 #' After fitting the only parameter of the penalty (\eqn{A}) it multiplies all elements of the smile vector by the
@@ -101,7 +99,7 @@
 #'
 #' Common group is a group of items that are not dissimilar to any other items in the set. Items in this group
 #' would have very low sum of dissimilarities to the other items. Algorithm guesses the common group by assigning
-#' the first \eqn{i \elem (0,n)} elements of the sorted (ascending) smile vector.
+#' the first \eqn{i \in (0,n)} elements of the sorted (ascending) smile vector.
 #'
 #' \item Perform cluster analysis on the items that are left
 #'
@@ -117,8 +115,11 @@
 #'  The algorithm is complicated, because of the need to restate the problem in manner compatible with the main
 #'  function, and to make sure we don't launch the recursion for the same set of items twice.
 #' }
+#' }
+#' @docType package
+#'
+#' @name PostHocGroups
 NULL
-
 
 # nocov start
 .onLoad	<-	function(libname,	pkgname)	{
@@ -126,25 +127,45 @@ NULL
 }
 # nocov end
 
-#' @param items Sorted list with items to group
-#' @param posthoc.pvalue.fn Function that takes two items and returns p-value or other measure of
-#'        utility of difference
-#'        depending whether first pair is significantly smaller, greater, or not significanty different at all.
-#' @return List with 3 elements:
-#' \describe{
-#'  \item{part}{??}
-#'  \item{qual}{??}
-#' }
+#' Groups result from post-hoc test
+#'
+#' The function is generic and can consume either dissimilarity matrix (of class \code{dist},
+#' e.g. produced by \code{stats::dist} function), or
+#' \code{glht} object, produced by the \code{\link[multcomp]{glht}} function
+#' from the \code{multcomp} package.
+#'
+#'
+#' @param object Object of one of the supported types.
+#' @param max.recursive.level Defaults to 1 for flat representation.
+#'        If more, algorithm will try to recursively subpartition groups that have
+#'        more than 2 elements.
+#' @param solutions.count Number of sultions to report. Defaults to 1, i.e. only the best solution
+#'        will be printed.
+#' @return Object of class \code{PostHocGroups}. If only one possible solution was requested,
+#' the object has also class \code{PostHocGroup}.
 #' @export
-PostHocGroups<-function(dissimiliarity.matrix,...)
+GroupPostHocs<-function(object,...)
 {
-  UseMethod('PostHocGroups')
+  UseMethod('GroupPostHocs')
 }
 
-PostHocGroups.glht<-function(res, max.recursive.level=1, solutions.count=1)
+#' Groups result from the \code{glht} post-hoc test
+#'
+#' This is a specialization of the generic function \code{GroupPostHocs}
+#'
+#' @param res Object of \code{glht} class.
+#' @param max.recursive.level Defaults to 1 for flat representation.
+#'        If more, algorithm will try to recursively subpartition groups that have
+#'        more than 2 elements.
+#' @param solutions.count Number of sultions to report. Defaults to 1, i.e. only the best solution
+#'        will be printed.
+#' @return Object of class \code{PostHocGroups}. If only one possible solution was requested,
+#' the object has also class \code{PostHocGroup}.
+#' @export
+GroupPostHocs.glht<-function(res, max.recursive.level=1, solutions.count=1)
 {
   gr<-rownames(res$model$contrasts$varnr)
-  symmetric.list.outer2<-function(res,threshold)
+  symmetric.list.outer2<-function(res)
   {
     len<-length(gr)
     pvalues<-res$test$pvalues
@@ -171,14 +192,40 @@ PostHocGroups.glht<-function(res, max.recursive.level=1, solutions.count=1)
   }
   means<-plyr::laply(gr, function(x){mean(res$model$data[varnr==x,value], na.rm=TRUE)})
   m<-symmetric.list.outer2(res)
-  row<-PostHocGroups.dist(dissimiliarity.matrix = m,
+  row<-GroupPostHocs.dist(dissimiliarity.matrix = m,
                           means = means,
                           max.recursive.level = max.recursive.level)
   return(row)
 }
 
+#' Groups elements of the given \code{dissimilarity matrix}
+#'
+#' This is the most general way to invoke the algorithm. User needs to provide distance matrix
+#' that is interpreted as dissimilarity matrix, with value that is interpreted as a
+#' measure of dissimilarity between items:
+#' \describe{
+#'  \item{matrix value >0}{Two items are similar}
+#'  \item{matrix value <0}{Two items are different}
+#' }
+#'
+#' To get meaningfull results, user should either provide matrix with items (columns/rows)
+#' of the matrix are sorted according to the corresponding value of the tested item, or
+#' provide the \code{means} argument and the algorithm will sort the elements internally.
+#'
+#' @param dissimiliarity.matrix Object of \code{dist} class.
+#' @param means Optional parameter. Requires numeric vector of the size of number of columns of
+#'        the dissimiliarity.matrix or \code{NULL} (default). If specified, function will sort
+#'        the dissimiliarity.matrix according to those values during the pre-process stage of the
+#'        algorithm.
+#' @param max.recursive.level Defaults to 1 for flat representation.
+#'        If more, algorithm will try to recursively subpartition groups that have
+#'        more than 2 elements.
+#' @param solutions.count Number of sultions to report. Defaults to 1, i.e. only the best solution
+#'        will be printed.
+#' @return Object of class \code{PostHocGroups}. If only one possible solution was requested,
+#' the object has also class \code{PostHocGroup}.
 #' @export
-PostHocGroups.dist<-function(dissimiliarity.matrix, means=NULL, max.recursive.level=1, solutions.count=1)
+GroupPostHocs.dist<-function(dissimiliarity.matrix, means=NULL, max.recursive.level=1, solutions.count=1)
 {
   myprox<-as.matrix(dissimiliarity.matrix)
   mylen<-ncol(myprox)
