@@ -162,9 +162,15 @@ GroupPostHocs<-function(object,...)
 #' @return Object of class \code{PostHocGroups}. If only one possible solution was requested,
 #' the object has also class \code{PostHocGroup}.
 #' @export
-GroupPostHocs.glht<-function(res, max.recursive.level=1, solutions.count=1)
+GroupPostHocs.glht<-function(res, nice.labels = NULL, max.recursive.level=1, solutions.count=1)
 {
   gr<-rownames(res$model$contrasts$varnr)
+  if (!is.null(nice.labels)) {
+    if (length(nice.labels)!=nrow(res$model$contrasts$varnr))
+      {stop(paste0("Wrong number of nice.labels. You must supply character vector of length ",
+                  nrow(res$model$contrasts$varnr)))}
+  }
+
   symmetric.list.outer2<-function(res)
   {
     len<-length(gr)
@@ -192,6 +198,10 @@ GroupPostHocs.glht<-function(res, max.recursive.level=1, solutions.count=1)
   }
   means<-plyr::laply(gr, function(x){mean(res$model$data[varnr==x,value], na.rm=TRUE)})
   m<-symmetric.list.outer2(res)
+  if (!is.null(nice.labels))
+  {
+    colnames(m)<-nice.labels
+  }
   row<-GroupPostHocs.dist(dissimiliarity.matrix = m,
                           means = means,
                           max.recursive.level = max.recursive.level)

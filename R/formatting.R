@@ -276,7 +276,7 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
 
 # library(Hmisc)
 # a<-readRDS('data/ex1.rds')
-# obj<-GroupPostHocs(a)
+# obj<-GroupPostHocs(a, nice.labels = c("Date of birth", "Gender", "Ethnicity", "Local of Birth", "Father´s local of Birth", "Date of Diagnosis", "Date of First Symptoms"))
 # f<-latex(obj)
 # ll<-readLines(f$file)
 # cat(paste0(ll,collapse = '\n'))
