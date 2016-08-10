@@ -196,7 +196,11 @@ GroupPostHocs.glht<-function(res, nice.labels = NULL, max.recursive.level=1, sol
     }
     return(out)
   }
-  means<-plyr::laply(gr, function(x){mean(res$model$data[varnr==x,value], na.rm=TRUE)})
+
+  factor.variable<- a$focus #attr(a$model$terms,'term.labels')
+  dep.variable<-all.vars(a$model$call$fixed)[[1]]
+
+  means<-plyr::laply(gr, function(x){mean(res$model$data[[dep.variable]][res$model$data[[factor.variable]]==x ], na.rm=TRUE)})
   m<-symmetric.list.outer2(res)
   if (!is.null(nice.labels))
   {
