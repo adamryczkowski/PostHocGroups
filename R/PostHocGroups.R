@@ -241,6 +241,7 @@ GroupPostHocs.glht<-function(res, nice.labels = NULL, max.recursive.level=1, sol
 #' @export
 GroupPostHocs.dist<-function(dissimiliarity.matrix, means=NULL, max.recursive.level=1, solutions.count=1)
 {
+  library(data.table)
   myprox<-as.matrix(dissimiliarity.matrix)
   mylen<-ncol(myprox)
   solutions<-data.table::as.data.table(read.table(text="",colClasses = 'character',col.names = 1:mylen))
