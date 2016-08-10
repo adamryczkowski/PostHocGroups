@@ -322,6 +322,7 @@ recursive.clustering<-function(myprox,
                                flag.smile.correct=TRUE,
                                flag.find.common.set=TRUE)
 {
+  library(data.table)
   if (length(unique(as.numeric(myprox)))<5)
   {
     #browser()
