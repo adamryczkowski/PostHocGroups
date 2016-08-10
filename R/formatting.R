@@ -186,6 +186,10 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj))
   car<-count.rows.and.columns(ans)
   tab<-get.excel.table(car)
   m<-ans<-bigmemory::as.matrix(tab$tab)
+  if (is.null(dim(m)))
+  {
+    dim(m)<-c(length(m),1)
+  }
   col.specs<-paste0(rep('l',ncol(m)),collapse = '|')
   latex_body<-rep('',nrow(m)+length(tab$legend)+3)
   latex_body_i<-3
@@ -268,7 +272,7 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj))
 
 
 # library(Hmisc)
-# a<-readRDS('data/ex3.rds')
+# a<-readRDS('data/ex1.rds')
 # obj<-GroupPostHocs(a)
 # f<-latex(obj)
 # ll<-readLines(f$file)
