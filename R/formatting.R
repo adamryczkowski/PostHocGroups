@@ -147,6 +147,7 @@ get.excel.table<-function(car, legend=NULL, tab=NULL, coloffset=1, rowoffset=1, 
   return(list(tab=tab, nextid=nextid, legend=legend))
 }
 
+#' @export
 print.PostHocGroup<-function(row)
 {
   ans<-get.table.struct(row)
@@ -169,19 +170,6 @@ print.PostHocGroup<-function(row)
   colnames(ans)<-names
   rownames(ans)<-seq(1, nrow(ans))
 
-  # tab.counts<-table(as.numeric(ans))
-  #
-  # legend.counts<-plyr::laply(tab$legend,function(x){length(x)})
-  #
-  # idx.to.substitute<-tab.counts==legend.counts
-  #
-  # to.substitute<-names(tab.counts)[idx.to.substitute]
-  #
-  # for (i in as.numeric(to.substitute))
-  # {
-  #   ans[ans==i]<-tab$legend[[i]]
-  # }
-
   print(ans)
   cat("Legend:\n")
   for(l in seq_along(tab$legend))
@@ -191,3 +179,97 @@ print.PostHocGroup<-function(row)
 
 
 }
+#' @export
+latex.PostHocGroup<-function(obj,title=digest::digest(obj))
+{
+  ans<-get.table.struct(obj)
+  car<-count.rows.and.columns(ans)
+  tab<-get.excel.table(car)
+  m<-ans<-bigmemory::as.matrix(tab$tab)
+  col.specs<-paste0(rep('l',ncol(m)),collapse = '|')
+  latex_body<-rep('',nrow(m)+length(tab$legend)+3)
+  latex_body_i<-3
+  latex_body[[1]]<-paste0('\\newcommand{\\specialcellitem}[3][c]{%\n',
+                          '  \\renewcommand{\\arraystretch}{#2}\\begin{tabular}[#1]{@{}c@{}}#3\\end{tabular}}\n')
+  latex_body[[2]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
+                          '    \\toprule\n',
+                          paste0('    \\multicolumn{',ncol(m),'}{l}{Variable groups}\\\\\n'),
+                          '    \\midrule\n')
+
+  latex_headers<-c('multirow','booktabs', 'tabulary')
+  calc.n.in.table<-function(x,item)
+  {
+    return(sum(m[seq(1,nrow(m)),x]==item))
+  }
+  new.group.pos<-function(y)
+  {
+    if (y==1)
+      return(0)
+    vec<-m[y,]!=m[y-1,]
+    ans<-which.max(vec)
+    if (!vec[[ans]])
+      return(0)
+    return(ans)
+  }
+  items.done<-rep(0,length(tab$legend))
+  items.tex<-matrix('',nrow(m),ncol(m))
+  matrix.elems.done<-matrix(FALSE,nrow(m),ncol(m))
+  for(y in seq(1, nrow(m)))
+  {
+    for(x in seq(1, ncol(m)))
+    {
+      if (!matrix.elems.done[[y,x]])
+      {
+        my.group<-m[y,x]
+        n.in.legend<-length(tab$legend[[my.group]])
+        n.in.table<-calc.n.in.table(x,my.group)
+        if (n.in.table != n.in.legend)
+        {
+          items.tex[[y,x]]<-paste0('\\multirow{',
+                                    n.in.table,
+                                    '}{*}{\\specialcellitem{',
+                                    format(n.in.table/n.in.legend,digits=4, scientific=FALSE),
+                                    '}{',
+                                    paste0(tab$legend[[my.group]],collapse='\\\\'),
+                                    '}}'
+                      )
+          matrix.elems.done[seq(y,y+n.in.table-1),x]<-TRUE
+        } else {
+          items.tex[[y,x]]<-tab$legend[[my.group]][[items.done[[my.group]]+1 ]]
+          matrix.elems.done[[y,x]]<-TRUE
+          items.done[[my.group]]<-items.done[[my.group]]+1
+        }
+      }
+
+    }
+  }
+  for(y in seq(1, nrow(m)))
+  {
+    newcolpos<-new.group.pos(y)
+    if (newcolpos>0)
+    {
+      latex_body[[latex_body_i]]<-paste0('    \\cline{',newcolpos,'-',ncol(m),'}\n')
+      latex_body_i<-latex_body_i+1
+    }
+    latex_body[[latex_body_i]]<-paste0('    ',
+                                       paste0(items.tex[y,], collapse = ' & '),
+                                       ' \\\\\n    ')
+    latex_body_i<-latex_body_i+1
+  }
+
+  latex_body[[latex_body_i]]<-paste0('    \\bottomrule\n',
+                                     '\\end{tabulary}\n')
+  latex_body_i<-latex_body_i+1
+  file=paste0(title, ".tex")
+  cat(paste0(latex_body,collapse = ''),file=file)
+  return(structure(
+    list(file=file, style=latex_headers),class='latex'))
+}
+
+
+# library(Hmisc)
+# a<-readRDS('data/ex3.rds')
+# obj<-GroupPostHocs(a)
+# f<-latex(obj)
+# ll<-readLines(f$file)
+# cat(paste0(ll,collapse = '\n'))

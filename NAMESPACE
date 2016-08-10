@@ -2,5 +2,7 @@
 
 S3method(GroupPostHocs,dist)
 S3method(GroupPostHocs,glht)
+S3method(print,PostHocGroup)
 export(GroupPostHocs)
+export(latex.PostHocGroup)
 export(symmetric.list.outer)
