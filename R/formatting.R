@@ -180,7 +180,7 @@ print.PostHocGroup<-function(row)
 
 }
 #' @export
-latex.PostHocGroup<-function(obj,title=digest::digest(obj))
+latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
 {
   ans<-get.table.struct(obj)
   car<-count.rows.and.columns(ans)
@@ -264,7 +264,10 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj))
   latex_body[[latex_body_i]]<-paste0('    \\bottomrule\n',
                                      '\\end{tabulary}\n')
   latex_body_i<-latex_body_i+1
-  file=paste0(title, ".tex")
+  if (is.null(file))
+  {
+    file=paste0(title, ".tex")
+  }
   cat(paste0(latex_body,collapse = ''),file=file)
   return(structure(
     list(file=file, style=latex_headers),class='latex'))
