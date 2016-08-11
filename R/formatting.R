@@ -175,10 +175,9 @@ print.PostHocGroup<-function(row)
     cat(paste0("'",l,"' - ",paste0(tab$legend[[l]], collapse = ', ' ), '\n'))
   }
 
-
 }
 #' @export
-latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=NULL, label=NULL)
+latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, booktabs=FALSE, ctable=FALSE, caption=NULL, label=NULL, here=FALSE, where='!htbp')
 {
   ans<-get.table.struct(obj)
   car<-count.rows.and.columns(ans)
@@ -191,7 +190,10 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=N
   col.specs<-paste0(rep('l',ncol(m)),collapse = '|')
   latex_body<-rep('',nrow(m)+length(tab$legend)+10)
   latex_body_i<-2
-  latex_body[[1]]<-'\\begin{table}[!tbp]\n'
+  latex_body[[1]]<-paste0('\\begin{table}[',
+                if (!here) { where } else {'H'},
+                ']\n')
+  browser()
   if (!is.null(caption))
   {
     latex_body[[latex_body_i]]<-paste0('\\caption{',
@@ -207,9 +209,13 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=N
                           '  \\renewcommand{\\arraystretch}{#2}\\begin{tabular}[#1]{@{}c@{}}#3\\end{tabular}}\n')
   latex_body_i<-latex_body_i+1
   latex_body[[latex_body_i]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
-                          '\n    \\toprule\n',
+                          '\n    ',
+                          if (booktabs) {'\\toprule'} else {'\\hline \\hline'},
+                          '\n',
                           paste0('    \\multicolumn{',ncol(m),'}{l}{Variable groups}\\\\\n'),
-                          '\n    \\midrule\n')
+                          '\n    ',
+                          if (booktabs) {'\\midrule'} else {'\\hline'},
+                          '\n')
   latex_body_i<-latex_body_i+1
   latex_headers<-c('multirow','booktabs', 'tabulary')
   calc.n.in.table<-function(x,item)
@@ -272,7 +278,9 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=N
     latex_body_i<-latex_body_i+1
   }
 
-  latex_body[[latex_body_i]]<-paste0('\n    \\bottomrule\n',
+  latex_body[[latex_body_i]]<-paste0('\n    ',
+                                     if (booktabs) {'\\bottomrule'} else {'\\hline \\hline' },
+                                     '\n',
                                      '\\end{tabulary}\n',
                                      '\\end{center}\n',
                                      '\\end{table}')
@@ -289,6 +297,6 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=N
 # library(Hmisc)
 # a<-readRDS('data/ex1.rds')
 # obj<-GroupPostHocs(a, nice.labels = c("Date of birth", "Gender", "Ethnicity", "Local of Birth", "Father´s local of Birth", "Date of Diagnosis", "Date of First Symptoms"))
-# f<-latex(obj, caption='Oto podpis tej tabeli.')
+# f<-latex(obj, caption='Oto podpis tej tabeli.', file='')
 # ll<-readLines(f$file)
 # cat(paste0(ll,collapse = '\n'))
