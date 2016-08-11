@@ -104,7 +104,6 @@ count.rows.and.columns<-function(ans)
 #' All cells that are marked with the same non-NA symbol, should be merged into one group.
 get.excel.table<-function(car, legend=NULL, tab=NULL, coloffset=1, rowoffset=1, nextid=1)
 {
-#  browser()
   if (is.null(tab))
   {
     tab<-bigmemory::big.matrix(
@@ -120,7 +119,6 @@ get.excel.table<-function(car, legend=NULL, tab=NULL, coloffset=1, rowoffset=1, 
   nextcol<-coloffset
   if (car$common.column.count>0)
   {
-  #  browser()
     for (i in seq(from = rowoffset,length.out =  car$row.count))
     {
       tab[i,nextcol]<-as.integer(nextid)
@@ -180,7 +178,7 @@ print.PostHocGroup<-function(row)
 
 }
 #' @export
-latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
+latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, caption=NULL, label=NULL)
 {
   ans<-get.table.struct(obj)
   car<-count.rows.and.columns(ans)
@@ -191,16 +189,28 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
     dim(m)<-c(length(m),1)
   }
   col.specs<-paste0(rep('l',ncol(m)),collapse = '|')
-  latex_body<-rep('',nrow(m)+length(tab$legend)+5)
-  latex_body_i<-4
-  latex_body[[1]]<-'\\begin{table}[!tbp]\n\\begin{center}\n'
-  latex_body[[2]]<-paste0('\\newcommand{\\specialcellitem}[3][c]{%\n',
+  latex_body<-rep('',nrow(m)+length(tab$legend)+10)
+  latex_body_i<-2
+  latex_body[[1]]<-'\\begin{table}[!tbp]\n'
+  if (!is.null(caption))
+  {
+    latex_body[[latex_body_i]]<-paste0('\\caption{',
+                                       caption,
+                                       if (!is.null(label))
+                                       {paste0('\\label{',label,'}')},
+                                       '}\n')
+    latex_body_i<-latex_body_i+1
+  }
+  latex_body[[latex_body_i]]<-'\\begin{center}\n'
+  latex_body_i<-latex_body_i+1
+  latex_body[[latex_body_i]]<-paste0('\\newcommand{\\specialcellitem}[3][c]{%\n',
                           '  \\renewcommand{\\arraystretch}{#2}\\begin{tabular}[#1]{@{}c@{}}#3\\end{tabular}}\n')
-  latex_body[[3]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
-                          '    \\toprule\n',
+  latex_body_i<-latex_body_i+1
+  latex_body[[latex_body_i]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
+                          '\n    \\toprule\n',
                           paste0('    \\multicolumn{',ncol(m),'}{l}{Variable groups}\\\\\n'),
-                          '    \\midrule\n')
-
+                          '\n    \\midrule\n')
+  latex_body_i<-latex_body_i+1
   latex_headers<-c('multirow','booktabs', 'tabulary')
   calc.n.in.table<-function(x,item)
   {
@@ -258,11 +268,11 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
     }
     latex_body[[latex_body_i]]<-paste0('    ',
                                        paste0(items.tex[y,], collapse = ' & '),
-                                       ' \\\\\n    ')
+                                       ' \\\\\n')
     latex_body_i<-latex_body_i+1
   }
 
-  latex_body[[latex_body_i]]<-paste0('    \\bottomrule\n',
+  latex_body[[latex_body_i]]<-paste0('\n    \\bottomrule\n',
                                      '\\end{tabulary}\n',
                                      '\\end{center}\n',
                                      '\\end{table}')
@@ -276,10 +286,9 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
     list(file=file, style=latex_headers),class='latex'))
 }
 
-
 # library(Hmisc)
 # a<-readRDS('data/ex1.rds')
 # obj<-GroupPostHocs(a, nice.labels = c("Date of birth", "Gender", "Ethnicity", "Local of Birth", "Father´s local of Birth", "Date of Diagnosis", "Date of First Symptoms"))
-# f<-latex(obj)
+# f<-latex(obj, caption='Oto podpis tej tabeli.')
 # ll<-readLines(f$file)
 # cat(paste0(ll,collapse = '\n'))
