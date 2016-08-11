@@ -193,7 +193,6 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL, booktabs=
   latex_body[[1]]<-paste0('\\begin{table}[',
                 if (!here) { where } else {'H'},
                 ']\n')
-  browser()
   if (!is.null(caption))
   {
     latex_body[[latex_body_i]]<-paste0('\\caption{',
