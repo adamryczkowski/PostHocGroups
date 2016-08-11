@@ -191,11 +191,12 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
     dim(m)<-c(length(m),1)
   }
   col.specs<-paste0(rep('l',ncol(m)),collapse = '|')
-  latex_body<-rep('',nrow(m)+length(tab$legend)+3)
-  latex_body_i<-3
-  latex_body[[1]]<-paste0('\\newcommand{\\specialcellitem}[3][c]{%\n',
+  latex_body<-rep('',nrow(m)+length(tab$legend)+5)
+  latex_body_i<-4
+  latex_body[[1]]<-'\\begin{table}[!tbp]\n\\begin{center}\n'
+  latex_body[[2]]<-paste0('\\newcommand{\\specialcellitem}[3][c]{%\n',
                           '  \\renewcommand{\\arraystretch}{#2}\\begin{tabular}[#1]{@{}c@{}}#3\\end{tabular}}\n')
-  latex_body[[2]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
+  latex_body[[3]]<-paste0('\\begin{tabulary}{\\textwidth}{',col.specs,'}\n',
                           '    \\toprule\n',
                           paste0('    \\multicolumn{',ncol(m),'}{l}{Variable groups}\\\\\n'),
                           '    \\midrule\n')
@@ -262,7 +263,9 @@ latex.PostHocGroup<-function(obj,title=digest::digest(obj), file=NULL)
   }
 
   latex_body[[latex_body_i]]<-paste0('    \\bottomrule\n',
-                                     '\\end{tabulary}\n')
+                                     '\\end{tabulary}\n',
+                                     '\\end{center}\n',
+                                     '\\end{table}')
   latex_body_i<-latex_body_i+1
   if (is.null(file))
   {
